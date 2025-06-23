@@ -2,3 +2,6 @@
 
 cmake-build*
 build
+
+doc/html
+doc/latex
