@@ -1,4 +1,0 @@
-#ifndef FORGETARGET_HPP
-#define FORGETARGET_HPP
-
-#endif //FORGETARGET_HPP

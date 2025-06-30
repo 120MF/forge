@@ -2,7 +2,7 @@
 #define CACHEMANAGER_HPP
 
 #include <filesystem>
-#include "ForgePackage.hpp"
+#include "Package.hpp"
 
 namespace Forge
 {

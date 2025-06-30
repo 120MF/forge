@@ -8,7 +8,7 @@ namespace Forge
     class BuildSystemGenerator
     {
     public:
-        void generate(const class ForgePackage& package, const std::filesystem::path& outputDir);
+        void generate(const class Package& package, const std::filesystem::path& outputDir);
 
     };
 }
