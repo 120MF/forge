@@ -7,7 +7,7 @@
 #include "Target.hpp"
 #include "Version.hpp"
 
-namespace Forge
+namespace Forge::Core
 {
     struct Package
     {

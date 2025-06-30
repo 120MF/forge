@@ -3,9 +3,8 @@
 
 #include <cstdint>
 #include <string>
-#include <compare>
 
-namespace Forge
+namespace Forge::Core
 {
     struct Version
     {

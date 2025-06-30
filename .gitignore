@@ -1,7 +1,7 @@
 .idea
 
 cmake-build*
-build
+/build
 
 doc/html
 doc/latex

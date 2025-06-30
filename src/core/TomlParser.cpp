@@ -1,6 +1,8 @@
 #include "TomlParser.hpp"
-#include "toml.hpp"
-namespace Forge
+#include <toml++/toml.hpp>
+using std::literals::operator ""s;
+
+namespace Forge::Core
 {
     Package parse_forge_toml(const std::filesystem::path& toml_path)
     {
@@ -9,36 +11,38 @@ namespace Forge
         }
 
         // 1. 解析 TOML 文件
-        const auto data = toml::parse(toml_path);
-        Forge::Package package;
+        const auto data = toml::parse_file(toml_path.generic_u8string());
+        Package package;
 
-        // 2. 解析 [package] 表
-        const auto& package_table = toml::find(data, "package");
+        auto package_table = data["package"];
 
-        package.name = toml::find<std::string>(package_table, "name");
-        package.description = toml::find<std::string>(package_table, "description");
+        package.name = package_table["name"].value_or(""s);
+        package.description = package_table["description"].value_or(""s);
+        package.version = Version(package_table["version"].value_or(""s));
 
-        // 使用 Version 的构造函数
-        package.version = Forge::Version(toml::find<std::string>(package_table, "version"));
+        if (auto authors = package_table["authors"].as_array()) {
+            for (auto&& author : *authors) {
+                if (auto author_str = author.value<std::string>()) {
+                    package.authors.insert(*author_str);
+                }
+            }
+        }
 
-        // toml11 会将 TOML 数组解析为 std::vector
-        const auto authors_vec = toml::find<std::vector<std::string>>(package_table, "authors");
-        package.authors.insert(authors_vec.begin(), authors_vec.end());
+        package.license = package_table["license"].value_or(""s);
+        package.repository = package_table["repository"].value_or(""s);
 
-        package.license = toml::find<std::string>(package_table, "license");
-        package.repository = toml::find<std::string>(package_table, "repository");
-
-        // 3. 解析 [[targets]] 表数组
-        if (data.contains("targets")) {
-            for (const auto& targets_array = toml::find<toml::array>(data, "targets"); const auto& target_table : targets_array) {
-                Target target;
-                target.src_dir = toml::find<std::string>(target_table, "src_dir");
-                target.include_dir = toml::find<std::string>(target_table, "include_dir");
-                package.targets.insert(target);
+        if (auto targets_array = data["targets"].as_array()) {
+            for (auto&& target_element : *targets_array) {
+                if (auto target_table = target_element.as_table()) {
+                    Target target;
+                    target.src_dir = (*target_table)["src_dir"].value_or(""s);
+                    target.include_dir = (*target_table)["include_dir"].value_or(""s);
+                    target.target_type = (*target_table)["type"].value_or(""s);
+                    package.targets.insert(target);
+                }
             }
         }
 
         return package;
     }
-
 }
