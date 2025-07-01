@@ -14,6 +14,7 @@ namespace Forge::Core
         Version() = default;
         explicit Version(const std::string& versionStr);
         [[nodiscard]] auto to_tuple() const noexcept;
+        [[nodiscard]] auto to_string() const noexcept;
 
         auto operator<=>(const Version&) const = default;
     };

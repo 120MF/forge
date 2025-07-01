@@ -10,7 +10,6 @@ namespace Forge::Core
             throw std::runtime_error("forge.toml not found at: " + toml_path.string());
         }
 
-        // 1. 解析 TOML 文件
         const auto data = toml::parse_file(toml_path.generic_u8string());
         Package package;
 
@@ -23,7 +22,7 @@ namespace Forge::Core
         if (auto authors = package_table["authors"].as_array()) {
             for (auto&& author : *authors) {
                 if (auto author_str = author.value<std::string>()) {
-                    package.authors.insert(*author_str);
+                    package.authors.push_back(*author_str);
                 }
             }
         }
@@ -35,10 +34,11 @@ namespace Forge::Core
             for (auto&& target_element : *targets_array) {
                 if (auto target_table = target_element.as_table()) {
                     Target target;
+                    target.name = (*target_table)["name"].value_or(""s);
                     target.src_dir = (*target_table)["src_dir"].value_or(""s);
                     target.include_dir = (*target_table)["include_dir"].value_or(""s);
                     target.target_type = (*target_table)["type"].value_or(""s);
-                    package.targets.insert(target);
+                    package.targets.push_back(target);
                 }
             }
         }

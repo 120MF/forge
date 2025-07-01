@@ -15,4 +15,9 @@ namespace Forge::Core
     {
         return std::tie(major, minor, patch);
     }
+
+    auto Version::to_string() const noexcept
+    {
+        return std::format("{}.{}.{}", major, minor, patch);
+    }
 }

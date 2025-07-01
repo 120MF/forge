@@ -2,6 +2,7 @@
 #define FORGEPACKAGE_HPP
 
 #include <string>
+#include <vector>
 #include <unordered_set>
 
 #include "Target.hpp"
@@ -14,14 +15,16 @@ namespace Forge::Core
         std::string name{};
         std::string description{};
         Version version{};
-        std::unordered_set<std::string> authors{};
+        std::vector<std::string> authors{};
         std::string license{};
         std::string repository{};
 
-        std::unordered_set<Target> targets{};
+        std::vector<Target> targets{};
 
         Package() = default;
     };
 }
+
+
 
 #endif //FORGEPACKAGE_HPP
