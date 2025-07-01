@@ -11,7 +11,12 @@ namespace Forge::Core
         unsigned int minor{};
         unsigned int patch{};
         Version() = default;
-        explicit Version(const std::string& versionStr);
+
+        Version(const unsigned int major, const unsigned int minor, const unsigned patch): major(major),
+            minor(minor), patch(patch)
+        {
+        }
+
         [[nodiscard]] auto to_tuple() const noexcept;
         [[nodiscard]] std::string to_string() const noexcept;
 

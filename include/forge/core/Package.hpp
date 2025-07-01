@@ -26,5 +26,4 @@ namespace Forge::Core
 }
 
 
-
 #endif //FORGEPACKAGE_HPP

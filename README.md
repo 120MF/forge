@@ -2,7 +2,9 @@ Forge - The Cpp Package Manager
 
 ## TODO
 
-- [ ] toml parser & core structures
+- [x] toml parser & core structures
+- [ ] forge build package
 - [ ] forge new package
 - [ ] forge run package
 - [ ] forge test package
+- [ ] std::move for string optimization
