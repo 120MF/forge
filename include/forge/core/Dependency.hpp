@@ -4,10 +4,10 @@
 #include <string>
 #include <vector>
 
+#include "Version.hpp"
+
 namespace Forge::Core
 {
-    struct Version;
-
     struct Dependency
     {
         std::string name;

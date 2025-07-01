@@ -65,17 +65,24 @@ namespace Forge::BuildSystem
                 MissingPackageSection,
                 "Missing required 'version' field in [package] section"
             });
-        package.description = std::move(package_table["description"].value_or(""s));
-        package.license = std::move(package_table["license"].value_or(""s));
-        package.repository = std::move(package_table["repository"].value_or(""s));
+        package.description = std::move(package_table["description"].value<std::string>());
+        package.license = std::move(package_table["license"].value<std::string>());
+        package.repository = std::move(package_table["repository"].value<std::string>());
         if (const auto authors = package_table["authors"].as_array())
         {
-            for (auto&& author : *authors)
+            std::vector<std::string> authors_vec;
+            authors_vec.reserve(authors->size());
+            for (const auto& author : *authors)
             {
                 if (auto author_str = author.value<std::string>())
                 {
-                    package.authors.push_back(*author_str);
+                    authors_vec.push_back(std::move(author_str.value()));
                 }
+            }
+
+            if (!authors_vec.empty())
+            {
+                package.authors = std::move(authors_vec);
             }
         }
 
@@ -137,7 +144,7 @@ namespace Forge::BuildSystem
             return std::move(dependency);
         }
 
-        if (auto dep_table = dependency_node.as_table())
+        if (const auto dep_table = dependency_node.as_table())
         {
             if (auto name = (*dep_table)["name"].value<std::string>())
                 dependency.name = std::move(name.value());
@@ -149,26 +156,17 @@ namespace Forge::BuildSystem
             if (const auto version = (*dep_table)["version"].value<std::string>())
             {
                 if (const auto result = parse_version(version.value()))
-                    dependency.version = std::move(result.value());
+                    dependency.version = result.value();
                 else
                     return std::unexpected(result.error());
             }
-            if (auto git = (*dep_table)["git"].value<std::string>())
-            {
-                dependency.git = std::move(git.value());
-            }
-            if (auto tag = (*dep_table)["tag"].value<std::string>())
-            {
-                dependency.tag = std::move(tag.value());
-            }
-            if (auto type = (*dep_table)["type"].value<std::string>())
-            {
-                dependency.type = std::move(type.value());
-            }
-            if (auto targets_array = (*dep_table)["targets"].as_array())
+            dependency.git = std::move((*dep_table)["git"].value<std::string>());
+            dependency.tag = std::move((*dep_table)["tag"].value<std::string>());
+            dependency.type = std::move((*dep_table)["type"].value<std::string>());
+            if (const auto targets_array = (*dep_table)["targets"].as_array())
             {
                 std::vector<std::string> targets;
-                for (auto& target_node : *targets_array)
+                for (auto&& target_node : *targets_array)
                 {
                     if (auto target_str = target_node.value<std::string>())
                         targets.push_back(std::move(target_str.value()));

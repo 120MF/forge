@@ -13,11 +13,11 @@ namespace Forge::Core
     struct Package
     {
         std::string name{};
-        std::string description{};
+        std::optional<std::string> description{};
         Version version{};
-        std::vector<std::string> authors{};
-        std::string license{};
-        std::string repository{};
+        std::optional<std::vector<std::string>> authors{};
+        std::optional<std::string> license{};
+        std::optional<std::string> repository{};
 
         std::vector<Target> targets{};
 

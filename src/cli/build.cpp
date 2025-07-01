@@ -1,7 +1,8 @@
 #include "build.hpp"
-
 #include "CMakeGenerator.hpp"
 #include "TomlParser.hpp"
+
+#include <print>
 
 namespace Forge::CLI
 {
@@ -18,8 +19,13 @@ namespace Forge::CLI
             }
             resolved_path = std::filesystem::current_path() / resolved_path;
 
-            generated_package = BuildSystem::parse_forge_toml(resolved_path);
-            generator.generate_project(generated_package, std::filesystem::current_path() / "build");
+            auto generated_package = BuildSystem::parse_forge_toml(resolved_path);
+            if (generated_package)
+                generator.generate_project(generated_package.value(), std::filesystem::current_path() / "build");
+            else
+            {
+                std::print("Error: {}\n", generated_package.error().message);
+            }
         });
     }
 }
