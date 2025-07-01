@@ -1,7 +1,7 @@
 #include "CLI/CLI.hpp"
-#include <print>
 
 #include "build.hpp"
+#include "fmt/ostream.h"
 
 int main(int argc, char** argv)
 {
@@ -10,6 +10,6 @@ int main(int argc, char** argv)
     Forge::CLI::BuildCommand build_command(app);
 
     CLI11_PARSE(app, argc, argv);
-    std::print("{}", app.get_description());
+    fmt::print("{}", app.get_description());
     return 0;
 }

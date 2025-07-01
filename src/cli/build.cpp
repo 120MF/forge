@@ -2,7 +2,7 @@
 #include "CMakeGenerator.hpp"
 #include "TomlParser.hpp"
 
-#include <print>
+#include <fmt/color.h>
 
 namespace Forge::CLI
 {
@@ -21,10 +21,13 @@ namespace Forge::CLI
 
             auto generated_package = BuildSystem::parse_forge_toml(resolved_path);
             if (generated_package)
+            {
                 generator.generate_project(generated_package.value(), std::filesystem::current_path() / "build");
+                fmt::print(fg(fmt::color::green), "✓ Build successful!\n");
+            }
             else
             {
-                std::print("Error: {}\n", generated_package.error().message);
+                fmt::print(fg(fmt::color::red), "✗ Error: {}\n", generated_package.error().message);
             }
         });
     }
