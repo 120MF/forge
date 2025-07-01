@@ -9,7 +9,7 @@ forge new package_name
 ## Build a package
 
 ```shell
-forge build_system package_name
+forge build package_name
 ```
 
 ## Run a package (if executable)

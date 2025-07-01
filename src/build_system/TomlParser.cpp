@@ -13,7 +13,7 @@ namespace Forge::BuildSystem
     std::expected<Core::Version, ParseError> parse_version(std::string_view versionStr);
     std::expected<Core::Package, ParseError> parse_package(const parse_result& data);
     std::expected<Core::Target, ParseError> parse_target(const node& target_element);
-    std::expected<Core::Dependency, ParseError> parse_dependency(node_view<const node>& node_view);
+    std::expected<Core::Dependency, ParseError> parse_dependency(const node& dependency_node);
 
     std::expected<Core::Package, ParseError> parse_forge_toml(const std::filesystem::path& toml_path)
     {
@@ -45,36 +45,26 @@ namespace Forge::BuildSystem
         Core::Package package;
 
         const auto& package_table = data["package"];
-        if (const auto name = package_table["name"].value<std::string>())
-        {
+        if (auto name = package_table["name"].value<std::string>())
             package.name = std::move(name.value());
-        }
         else
-        {
             return std::unexpected(ParseError{
                 MissingPackageSection,
                 "Missing required 'name' field in [package] section"
             });
-        }
 
         if (const auto version = package_table["version"].value<std::string_view>())
         {
             if (auto result = parse_version(version.value()))
-            {
                 package.version = result.value();
-            }
             else
-            {
                 return std::unexpected(result.error());
-            }
         }
         else
-        {
             return std::unexpected(ParseError{
                 MissingPackageSection,
                 "Missing required 'version' field in [package] section"
             });
-        }
         package.description = std::move(package_table["description"].value_or(""s));
         package.license = std::move(package_table["license"].value_or(""s));
         package.repository = std::move(package_table["repository"].value_or(""s));
@@ -92,9 +82,9 @@ namespace Forge::BuildSystem
 
         if (const auto targets_array = data["targets"].as_array())
         {
-            for (auto&& target_element : *targets_array)
+            for (auto&& target_node : *targets_array)
             {
-                auto target = parse_target(target_element);
+                auto target = parse_target(target_node);
                 if (!target) return std::unexpected(target.error());
                 package.targets.push_back(std::move(target.value()));
             }
@@ -108,7 +98,7 @@ namespace Forge::BuildSystem
         if (const auto target_table = target_element.as_table())
         {
             Core::Target target;
-            if (const auto name = (*target_table)["name"].value<std::string>())
+            if (auto name = (*target_table)["name"].value<std::string>())
                 target.name = std::move(name.value());
             else
                 return std::unexpected(ParseError{
@@ -117,6 +107,20 @@ namespace Forge::BuildSystem
             target.src_dir = (*target_table)["src_dir"].value_or(""s);
             target.include_dir = (*target_table)["include_dir"].value_or(""s);
             target.target_type = (*target_table)["type"].value_or(""s);
+
+            if (const auto dependencies = (*target_table)["dependencies"].as_array())
+            {
+                for (auto&& dependency_node : *dependencies)
+                {
+                    auto dependency = parse_dependency(dependency_node);
+                    if (dependency)
+                    {
+                        target.dependencies.push_back(std::move(dependency.value()));
+                        continue;
+                    }
+                    return std::unexpected(dependency.error());
+                }
+            }
             return std::move(target);
         }
         return std::unexpected(ParseError{
@@ -124,8 +128,59 @@ namespace Forge::BuildSystem
         });
     };
 
-    std::expected<Core::Dependency, ParseError> parse_dependency(node_view<const node>& node_view)
+    std::expected<Core::Dependency, ParseError> parse_dependency(const node& dependency_node)
     {
+        Core::Dependency dependency;
+        if (auto dep_str = dependency_node.value<std::string>())
+        {
+            dependency.name = std::move(dep_str.value());
+            return std::move(dependency);
+        }
+
+        if (auto dep_table = dependency_node.as_table())
+        {
+            if (auto name = (*dep_table)["name"].value<std::string>())
+                dependency.name = std::move(name.value());
+            else
+                return std::unexpected(ParseError{
+                    InvalidDependencyDefinition,
+                    "Missing required 'name' field in dependency definition"
+                });
+            if (const auto version = (*dep_table)["version"].value<std::string>())
+            {
+                if (const auto result = parse_version(version.value()))
+                    dependency.version = std::move(result.value());
+                else
+                    return std::unexpected(result.error());
+            }
+            if (auto git = (*dep_table)["git"].value<std::string>())
+            {
+                dependency.git = std::move(git.value());
+            }
+            if (auto tag = (*dep_table)["tag"].value<std::string>())
+            {
+                dependency.tag = std::move(tag.value());
+            }
+            if (auto type = (*dep_table)["type"].value<std::string>())
+            {
+                dependency.type = std::move(type.value());
+            }
+            if (auto targets_array = (*dep_table)["targets"].as_array())
+            {
+                std::vector<std::string> targets;
+                for (auto& target_node : *targets_array)
+                {
+                    if (auto target_str = target_node.value<std::string>())
+                        targets.push_back(std::move(target_str.value()));
+                }
+                dependency.target_names = std::move(targets);
+            }
+            return std::move(dependency);
+        }
+        return std::unexpected(ParseError{
+            InvalidDependencyDefinition,
+            "Dependency must be either a string or a table"
+        });
     };
 
     std::expected<Core::Version, ParseError> parse_version(std::string_view versionStr)

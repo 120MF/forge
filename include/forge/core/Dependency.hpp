@@ -6,13 +6,15 @@
 
 namespace Forge::Core
 {
+    struct Version;
+
     struct Dependency
     {
         std::string name;
-        std::optional<std::string> version;
+        std::optional<Version> version;
         std::optional<std::string> git;
         std::optional<std::string> tag;
-        std::optional<std::vector<std::string>> targets;
+        std::optional<std::vector<std::string>> target_names;
         std::optional<std::string> type;
     };
 }
