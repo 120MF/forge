@@ -30,11 +30,11 @@ namespace Forge::BuildSystem
             "set(CMAKE_CXX_STANDARD 20)\n"
             "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n\n",
             package.name,
-            package.version
+            package.version.to_string()
         );
         for (const auto& target: package.targets)
         {
-            content += std::format("add_subdirectory({})\n", target.src_dir);
+            content += std::format("add_subdirectory({})\n", target.src_dir.string());
         }
         return content;
     }

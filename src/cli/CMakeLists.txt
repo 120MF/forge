@@ -8,7 +8,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(cli11_proj)
 
-add_executable(forge
-        main.cpp
-)
-target_link_libraries(forge PRIVATE CLI11::CLI11 ForgeCore)
+add_executable(forge)
+file(GLOB_RECURSE FORGE_CLI_SOURCES "*.cpp")
+target_sources(forge PRIVATE ${FORGE_CLI_SOURCES})
+target_link_libraries(forge PRIVATE CLI11::CLI11 ForgeCore ForgeBuildSystem)
