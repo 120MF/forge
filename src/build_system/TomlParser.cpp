@@ -12,7 +12,7 @@ namespace Forge::BuildSystem
 {
     std::expected<Core::Version, ParseError> parse_version(std::string_view versionStr);
     std::expected<Core::Package, ParseError> parse_package(const parse_result& data);
-    std::expected<Core::Target, ParseError> parse_target(const node_view<const node>& target_element);
+    std::expected<Core::Target, ParseError> parse_target(const node& target_element);
     std::expected<Core::Dependency, ParseError> parse_dependency(node_view<const node>& node_view);
 
     std::expected<Core::Package, ParseError> parse_forge_toml(const std::filesystem::path& toml_path)
@@ -94,18 +94,26 @@ namespace Forge::BuildSystem
         {
             for (auto&& target_element : *targets_array)
             {
+                auto target = parse_target(target_element);
+                if (!target) return std::unexpected(target.error());
+                package.targets.push_back(std::move(target.value()));
             }
         }
 
         return std::move(package);
     };
 
-    std::expected<Core::Target, ParseError> parse_target(const node_view<const node>& target_element)
+    std::expected<Core::Target, ParseError> parse_target(const node& target_element)
     {
         if (const auto target_table = target_element.as_table())
         {
             Core::Target target;
-            target.name = (*target_table)["name"].value_or(""s);
+            if (const auto name = (*target_table)["name"].value<std::string>())
+                target.name = std::move(name.value());
+            else
+                return std::unexpected(ParseError{
+                    InvalidTargetDefinition, "Missing required 'name' field in [[target]] section"
+                });
             target.src_dir = (*target_table)["src_dir"].value_or(""s);
             target.include_dir = (*target_table)["include_dir"].value_or(""s);
             target.target_type = (*target_table)["type"].value_or(""s);
