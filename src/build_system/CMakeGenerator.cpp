@@ -1,5 +1,6 @@
 #include "CMakeGenerator.hpp"
 
+#include <format>
 #include <fstream>
 
 #include "Package.hpp"
@@ -23,38 +24,39 @@ namespace Forge::BuildSystem
 
     std::string CMakeGenerator::generate_root_cmakelists(const Core::Package& package)
     {
-        std::ostringstream oss;
-        oss << "cmake_minimum_required(VERSION 3.20)\n";
-        oss << "project(" << package.name << " VERSION " << package.version.to_string() << ")\n\n";
-        oss << "set(CMAKE_CXX_STANDARD 20)\n";
-        oss << "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n\n";
-
-        for (const auto& target : package.targets) {
-            oss << "add_subdirectory(" << target.src_dir << ")\n";
+        std::string content = std::format(
+            "cmake_minimum_required(VERSION 3.20)\n"
+            "project({} VERSION {}\n\n"
+            "set(CMAKE_CXX_STANDARD 20)\n"
+            "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n\n",
+            package.name,
+            package.version
+        );
+        for (const auto& target: package.targets)
+        {
+            content += std::format("add_subdirectory({})\n", target.src_dir);
         }
-
-        return oss.str();
+        return content;
     }
 
     std::string CMakeGenerator::generate_target_cmakelists(const Core::Target& target)
     {
-        std::ostringstream oss;
+        std::string content = "file(GLOB_RECURSE SOURCES \"*.cpp\" \"*.c\" \"*.cxx\")\n"
+                              "file(GLOB_RECURSE HEADERS \"*.hpp\" \"*.h\" \"*.hxx\")\n\n";
 
-        oss << "file(GLOB_RECURSE SOURCES \"*.cpp\" \"*.c\" \"*.cxx\")\n";
-        oss << "file(GLOB_RECURSE HEADERS \"*.hpp\" \"*.h\" \"*.hxx\")\n\n";
-
-        const std::string target_type = determine_target_type(target);
-        if (target_type == "executable") {
-            oss << "add_executable(" << target.name << " ${SOURCES})\n";
+        if (const std::string target_type = determine_target_type(target); target_type == "executable") {
+            content += std::format("add_executable({} ${{SOURCES}})\n", target.name);
         } else {
-            oss << "add_library(" << target.name << " ${SOURCES})\n";
+            content += std::format("add_library({} ${{SOURCES}})\n", target.name);
         }
 
         if (!target.include_dir.empty()) {
-            oss << "target_include_directories(" << target.name << " PUBLIC " << target.include_dir << ")\n";
+            content += std::format("target_include_directories({} PUBLIC {})\n",
+                                   target.name,
+                                   target.include_dir.string());
         }
 
-        return oss.str();
+        return content;
     }
 
     std::string CMakeGenerator::determine_target_type(const Core::Target& target)
