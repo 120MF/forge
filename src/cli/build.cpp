@@ -4,6 +4,8 @@
 
 #include <fmt/color.h>
 
+#include "BuildConfig.hpp"
+
 namespace Forge::CLI
 {
     BuildCommand::BuildCommand(::CLI::App& app)
@@ -22,8 +24,13 @@ namespace Forge::CLI
             auto generated_package = BuildSystem::parse_forge_toml(resolved_path);
             if (generated_package)
             {
+                const BuildSystem::BuildConfig config{
+                    .cache_dir = std::move(target_path / "cache"),
+                    .build_dir = std::move(target_path / "build"),
+                    .project_root = std::move(std::filesystem::current_path() / target_path),
+                };
                 BuildSystem::CMakeGenerator::generate_project(generated_package.value(),
-                                                              std::filesystem::current_path() / "build");
+                                                              config);
                 fmt::print(fg(fmt::color::green), "✓ Build successful!\n");
             }
             else
