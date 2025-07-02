@@ -1,4 +1,5 @@
 #include "CMakeGenerator.hpp"
+#include "BuildConfig.hpp"
 
 #include <format>
 #include <fstream>
@@ -8,18 +9,21 @@
 
 namespace Forge::BuildSystem
 {
-    void CMakeGenerator::generate_project(const Core::Package& package, const std::filesystem::path& output_dir)
+    void CMakeGenerator::generate_project(const Core::Package& package, const BuildConfig& config)
     {
-        std::filesystem::create_directories(output_dir);
+        auto actual_build_dir = config.cache_dir / "build";
+        std::filesystem::create_directories(actual_build_dir);
         const auto root_cmake = generate_root_cmakelists(package);
-        write_file(output_dir / "CMakeLists.txt", root_cmake);
+        write_file(actual_build_dir / "CMakeLists.txt", root_cmake);
         for (const auto& target : package.targets)
         {
-            auto target_dir = output_dir / target.src_dir;
+            auto target_dir = actual_build_dir / target.src_dir;
             std::filesystem::create_directories(target_dir);
-            auto target_cmake = generate_target_cmakelists(target);
+            auto target_cmake = generate_target_cmakelists(target, config.project_root);
             write_file(target_dir / "CMakeLists.txt", target_cmake);
         }
+        std::filesystem::remove_all(config.build_dir);
+        std::filesystem::create_symlink(actual_build_dir, config.build_dir);
     }
 
     std::string CMakeGenerator::generate_root_cmakelists(const Core::Package& package)
@@ -39,10 +43,16 @@ namespace Forge::BuildSystem
         return content;
     }
 
-    std::string CMakeGenerator::generate_target_cmakelists(const Core::Target& target)
+    std::string CMakeGenerator::generate_target_cmakelists(const Core::Target& target,
+                                                           const std::filesystem::path& project_root)
     {
-        std::string content = "file(GLOB_RECURSE SOURCES \"*.cpp\" \"*.c\" \"*.cxx\")\n"
-            "file(GLOB_RECURSE HEADERS \"*.hpp\" \"*.h\" \"*.hxx\")\n\n";
+        const auto source_dir = project_root / target.src_dir;
+        std::string content = std::format(
+            "file(GLOB_RECURSE SOURCES \"{}/*.cpp\" \"{}/*.c\" \"{}/*.cxx\")\n"
+            "file(GLOB_RECURSE HEADERS \"{}/*.hpp\" \"{}/*.h\" \"{}/*.hxx\")\n\n",
+            source_dir.string(), source_dir.string(), source_dir.string(),
+            source_dir.string(), source_dir.string(), source_dir.string()
+        );
 
         if (const std::string target_type = determine_target_type(target); target_type == "executable")
         {
