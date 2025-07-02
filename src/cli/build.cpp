@@ -22,7 +22,8 @@ namespace Forge::CLI
             auto generated_package = BuildSystem::parse_forge_toml(resolved_path);
             if (generated_package)
             {
-                generator.generate_project(generated_package.value(), std::filesystem::current_path() / "build");
+                BuildSystem::CMakeGenerator::generate_project(generated_package.value(),
+                                                              std::filesystem::current_path() / "build");
                 fmt::print(fg(fmt::color::green), "✓ Build successful!\n");
             }
             else

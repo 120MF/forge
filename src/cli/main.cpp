@@ -10,6 +10,5 @@ int main(int argc, char** argv)
     Forge::CLI::BuildCommand build_command(app);
 
     CLI11_PARSE(app, argc, argv);
-    fmt::print("{}", app.get_description());
     return 0;
 }

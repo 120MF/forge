@@ -13,12 +13,13 @@ namespace Forge::BuildSystem
     class CMakeGenerator
     {
     public:
-        void generate_project(const Core::Package& package, const std::filesystem::path& output_dir);
+        static void generate_project(const Core::Package& package, const std::filesystem::path& output_dir);
+
     private:
-        std::string generate_root_cmakelists(const Core::Package& package);
-        std::string generate_target_cmakelists(const Core::Target& target);
-        std::string determine_target_type(const Core::Target& target);
-        void write_file(const std::filesystem::path& path, const std::string& content);
+        static std::string generate_root_cmakelists(const Core::Package& package);
+        static std::string generate_target_cmakelists(const Core::Target& target);
+        static std::string determine_target_type(const Core::Target& target);
+        static void write_file(const std::filesystem::path& path, const std::string& content);
     };
 }
 
