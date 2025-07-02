@@ -28,7 +28,7 @@ namespace Forge::BuildSystem
         std::string content = std::format(
             "cmake_minimum_required(VERSION 3.20)\n"
             "project({} VERSION {})\n\n"
-            "set(CMAKE_CXX_STANDARD 20)\n"
+            "set(CMAKE_CXX_STANDARD 23)\n"
             "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n\n",
             package.name,
             package.version.to_string()
@@ -64,7 +64,7 @@ namespace Forge::BuildSystem
         {
             content += std::format("target_include_directories({} PUBLIC {})\n",
                                    target.name,
-                                   target.include_dir.string());
+                                   (project_root / target.include_dir).string());
         }
 
         for (auto dep : target.dependencies)
