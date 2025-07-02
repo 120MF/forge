@@ -8,3 +8,4 @@ add_subdirectory(src)
 
 include(ForgeDocument)
 include(ForgeInstall)
+include(ForgeSoftwarePackage)
