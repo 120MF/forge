@@ -11,19 +11,16 @@ namespace Forge::BuildSystem
 {
     void CMakeGenerator::generate_project(const Core::Package& package, const BuildConfig& config)
     {
-        auto actual_build_dir = config.cache_dir / "build";
-        std::filesystem::create_directories(actual_build_dir);
+        std::filesystem::create_directories(config.build_dir);
         const auto root_cmake = generate_root_cmakelists(package);
-        write_file(actual_build_dir / "CMakeLists.txt", root_cmake);
+        write_file(config.build_dir / "CMakeLists.txt", root_cmake);
         for (const auto& target : package.targets)
         {
-            auto target_dir = actual_build_dir / target.src_dir;
+            auto target_dir = config.build_dir / target.src_dir;
             std::filesystem::create_directories(target_dir);
             auto target_cmake = generate_target_cmakelists(target, config.project_root);
             write_file(target_dir / "CMakeLists.txt", target_cmake);
         }
-        std::filesystem::remove_all(config.build_dir);
-        std::filesystem::create_symlink(actual_build_dir, config.build_dir);
     }
 
     std::string CMakeGenerator::generate_root_cmakelists(const Core::Package& package)

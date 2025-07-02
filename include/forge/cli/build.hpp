@@ -13,8 +13,10 @@ namespace Forge::CLI
         explicit BuildCommand(::CLI::App& app);
 
     private:
+        bool run_cmake_configure(const BuildSystem::BuildConfig& config);
+        bool run_cmake_build(const BuildSystem::BuildConfig& config);
         ::CLI::App* build_command;
-        std::filesystem::path target_path{"."};
+        std::string target_path_str{};
         BuildSystem::CMakeGenerator generator;
         Core::Package generated_package;
     };
